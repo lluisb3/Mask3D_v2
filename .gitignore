@@ -2,15 +2,14 @@
 /logs
 /data
 /eval_output
+/checkpoints
 third_party/MinkowskiEngine
 third_party/ScanNet
 *.out
+/bash_files
+.github
 
 .vscode/
-
-
-
-
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
