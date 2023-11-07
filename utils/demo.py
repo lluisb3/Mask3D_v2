@@ -5,23 +5,52 @@ import shutil
 from pathlib import Path
 from datasets.preprocessing.scannet_preprocessing import ScannetPreprocessing
 from utils.visualization_gui import visualize_test
+import json
+import plyfile
+import numpy as np
 
 thispath = Path(__file__).resolve()
 
 project_dir = str(thispath.parent.parent)
 
 def segment(d_dir, scene):
-    # Execute "segmentator" binary for the current ply file
-    args = (f"{project_dir}/datasets/preprocessing/segmentator",  # Path to the compiled segmentator binary
-            str(f"{d_dir}/{scene}.ply"))
-    popen = subprocess.Popen(args)
-    popen.wait()
+    # # Execute "segmentator" binary for the current ply file
+    # args = (f"{project_dir}/third_party/ScanNet/Segmentator/segmentator",  # Path to the compiled segmentator binary
+    #         str(f"{d_dir}/{scene}.ply"))
+    # popen = subprocess.Popen(args)
+    # popen.wait()
+
+    plydata = plyfile.PlyData.read(f"{d_dir}/{scene}.ply")
+
+    data = plydata.elements[0].data
+    coords = np.array([data['x'], data['y'], data['z']], dtype=np.float32).T
+
+    # Opening JSON file
+    f = open('data/raw/scannet_test_segments/scene3333_00_vh_clean_2.0.010000.segs.json')
+
+    a = open(f'data/raw/scannet_test_segments/{scene}_vh_clean_2.0.010000.segs.json', 'w')
+    
+    # returns JSON object as 
+    # a dictionary
+    data = json.load(f)
+
+    data_a = data
+    
+    # Iterating through the json
+    # list
+    data_a['segIndices'] = list(range(len(coords)))
+
+    json.dump(data_a, a, indent = 6)  
+    
+    # Closing file
+    f.close()
+    a.close()
 
     # Rename the file and move it to the segments_test folder
-    os.rename(f"{d_dir}/{scene}.0.010000.segs.json",
-              f"{d_dir}/{scene}_vh_clean_2.0.010000.segs.json")
-    shutil.move(f"{d_dir}/{scene}_vh_clean_2.0.010000.segs.json",
-                f"{project_dir}/data/raw/scannet_test_segments/{scene}_vh_clean_2.0.010000.segs.json")
+    # os.rename(f"{d_dir}/{scene}.0.010000.segs.json",
+    #           f"{d_dir}/{scene}_vh_clean_2.0.010000.segs.json")
+    # shutil.move(f"{d_dir}/{scene}_vh_clean_2.0.010000.segs.json",
+    #             f"{project_dir}/data/raw/scannet_test_segments/{scene}_vh_clean_2.0.010000.segs.json")
 
 
 def preprocess(d_dir):
