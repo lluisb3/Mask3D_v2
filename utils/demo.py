@@ -20,6 +20,12 @@ def segment(d_dir, scene):
     # popen = subprocess.Popen(args)
     # popen.wait()
 
+    # # Rename the file and move it to the segments_test folder
+    # os.rename(f"{d_dir}/{scene}.0.010000.segs.json",
+    #           f"{d_dir}/{scene}_vh_clean_2.0.010000.segs.json")
+    # shutil.move(f"{d_dir}/{scene}_vh_clean_2.0.010000.segs.json",
+    #             f"{project_dir}/data/raw/scannet_test_segments/{scene}_vh_clean_2.0.010000.segs.json")
+
     plydata = plyfile.PlyData.read(f"{d_dir}/{scene}.ply")
 
     data = plydata.elements[0].data
@@ -46,12 +52,6 @@ def segment(d_dir, scene):
     f.close()
     a.close()
 
-    # Rename the file and move it to the segments_test folder
-    # os.rename(f"{d_dir}/{scene}.0.010000.segs.json",
-    #           f"{d_dir}/{scene}_vh_clean_2.0.010000.segs.json")
-    # shutil.move(f"{d_dir}/{scene}_vh_clean_2.0.010000.segs.json",
-    #             f"{project_dir}/data/raw/scannet_test_segments/{scene}_vh_clean_2.0.010000.segs.json")
-
 
 def preprocess(d_dir):
     # Execute "scannet_preprocessing.py" for the ply file
@@ -74,10 +74,10 @@ def instance_segmentation(exp_name, checkpoint):
                     "data.test_mode=test",  # Use test split
                     "data/datasets=demo",  # Copy of scannet.yaml with test_dataset.data_dir changed
                     "model.num_queries=150",
-                    "general.topk_per_image=500",
+                    "general.topk_per_image=300",
                     "general.use_dbscan=true",
                     "general.dbscan_eps=0.95",
-                    "data.voxel_size=0.05"])
+                    "data.voxel_size=0.02"])
 
 def main():
     # Create the parser
