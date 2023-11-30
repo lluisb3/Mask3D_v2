@@ -10,7 +10,7 @@ from datasets.scannet200.scannet200_constants import VALID_CLASS_IDS_200, CLASS_
 
 def visualize_test(ply_path, mask_dir, scene_name):
     # Load ply
-    scene_mask = o3d.io.read_triangle_mesh(ply_path)
+    scene_mask = o3d.io.read_point_cloud(ply_path)
 
     # Initialize visualizer
     app = gui.Application.instance
@@ -53,17 +53,17 @@ def visualize_test(ply_path, mask_dir, scene_name):
         inst_color = list(SCANNET_COLOR_MAP_20[VALID_CLASS_IDS_20[CLASS_LABELS_20.index(label)]])
         #inst_color = [random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)]
 
-        for i in range(len(scene_mask.vertices)):
+        for i in range(len(scene_mask.points)):
             if mask[i]:
                 colors.append([inst_color[0]/255., inst_color[1]/255., inst_color[2]/255.])
                 temp = i
                 # colors.append(inst_color)
 
             else:
-                colors.append(scene_mask.vertex_colors[i])
+                colors.append(scene_mask.colors[i])
 
-        scene_mask.vertex_colors = o3d.utility.Vector3dVector(colors)
-        vis.add_3d_label(scene_mask.vertices[temp], "{}".format(label))
+        scene_mask.colors = o3d.utility.Vector3dVector(colors)
+        vis.add_3d_label(scene_mask.points[temp], "{}".format(label))
 
     # Load scene visualization    
     vis.add_geometry(f"Scene {scene_name}", scene_mask)
