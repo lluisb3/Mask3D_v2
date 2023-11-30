@@ -1,12 +1,10 @@
 #visualization.py
 
 import open3d as o3d
-import open3d.visualization.gui as gui
 import numpy as np
 import argparse
 from datasets.scannet200.scannet200_constants import VALID_CLASS_IDS_20, CLASS_LABELS_20, SCANNET_COLOR_MAP_20
 from datasets.scannet200.scannet200_constants import VALID_CLASS_IDS_200, CLASS_LABELS_200, SCANNET_COLOR_MAP_200
-import random
 from PIL import Image, ImageFont, ImageDraw
 from pyquaternion import Quaternion
 
