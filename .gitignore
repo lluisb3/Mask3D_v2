@@ -8,6 +8,7 @@ third_party/ScanNet
 *.out
 /bash_files
 .github
+build.log
 
 .vscode/
 

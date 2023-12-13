@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  mask3d:
+    image: lluisb3/mask3d:v5.0
+    volumes:
+      - /home/ither1/docker_volume/hl2ss/data/hololens_docker/hololens_docker_pcd.ply:/home/app/data/raw/hesso/scene0001_00.ply
+    deploy:
+     resources:
+       reservations:
+         devices:
+           - driver: nvidia
+             count: 1
+             capabilities: [gpu]

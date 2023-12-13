@@ -5,8 +5,6 @@ import shutil
 from pathlib import Path
 from datasets.preprocessing.scannet_preprocessing import ScannetPreprocessing
 from utils.visualization_gui_pcd import visualize_test
-import json
-import plyfile
 import numpy as np
 
 thispath = Path(__file__).resolve()
@@ -63,7 +61,7 @@ def preprocess(d_dir):
 
 def instance_segmentation(exp_name, checkpoint):
     # Execute "main_instance_segmentation.py"
-    subprocess.run(["python", f"{project_dir}/main_instance_segmentation.py",  # Path to main_instance_segmentation python file
+    subprocess.run(["python3", f"{project_dir}/main_instance_segmentation.py",  # Path to main_instance_segmentation python file
                     f"general.experiment_name={exp_name}",
                     "general.project_name='scannet_eval'",
                     f"general.checkpoint='checkpoints/scannet/{checkpoint}.ckpt'",  # Path to checkpoint
@@ -91,7 +89,6 @@ def main():
     # Parse the arguments
     args = parser.parse_args()
     exp_name = args.exp_name
-    # data_dir = args.data_dir
     scene = args.scene
     checkpoint = args.checkpoint
 
@@ -125,10 +122,11 @@ def main():
     instance_segmentation(exp_name, checkpoint)
 
     # Visualize results
-    print("========= Visualization ==========")
-    visualize_test(ply_path=f"{data_dir}/scans_test/{scene}/{scene}_vh_clean_2.ply",
-                   mask_dir=f"{thispath.parent.parent}/eval_output/instance_evaluation_{exp_name}_0/decoder_-1",
-                   scene_name=scene)
+    # print("========= Visualization ==========")
+
+    # visualize_test(ply_path=f"{data_dir}/scans_test/{scene}/{scene}_vh_clean_2.ply",
+    #                mask_dir=f"{thispath.parent.parent}/eval_output/instance_evaluation_{exp_name}_0/decoder_-1",
+    #                scene_name=scene)
 
 
 if __name__ == "__main__":
