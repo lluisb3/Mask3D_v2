@@ -191,6 +191,19 @@ Following PointGroup, HAIS and SoftGroup, we finetune a model pretrained on Scan
 | STPLS3D val | 57.3 | 74.3 | 81.6 | [config](scripts/stpls3d/stpls3d_val.sh) | [checkpoint](https://omnomnom.vision.rwth-aachen.de/data/mask3d/checkpoints/stpls3d/stpls3d_val.ckpt) | [scores](./docs/detailed_scores/stpls3d.txt) | [visualizations](https://omnomnom.vision.rwth-aachen.de/data/mask3d/visualizations/stpls3d/)
 | STPLS3D test | 63.4 | 79.2 | 85.6 | [config](scripts/stpls3d/stpls3d_benchmark.sh) | [checkpoint](https://omnomnom.vision.rwth-aachen.de/data/mask3d/checkpoints/stpls3d/stpls3d_benchmark.zip) | [scores](https://codalab.lisn.upsaclay.fr/competitions/4646#results) | visualizations
 
+## Docker
+Run lluisb3/Mask3D from docker image on a pointcloud obtained using lluisb3/hl2ss and Hololens2. Follow this steps on Ubuntu to run the images correctly.
+
+#### Install docker:
+https://docs.docker.com/engine/install/ubuntu/
+
+
+
+
+```bash
+python main_instance_segmentation.py
+```
+
 ## BibTeX :pray:
 ```
 @article{Schult23ICRA,

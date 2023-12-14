@@ -1,9 +1,6 @@
+#!/bin/sh
+
 # dependencies for mask3D
-
-# conda env create -f environment.yml
-
-# conda activate mask3d_cuda113
-
 pip3 install --no-build-isolation Cython==0.29.36 pyyaml==5.4.1
 
 pip3 install open3d==0.17

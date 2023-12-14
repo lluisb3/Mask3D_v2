@@ -3,8 +3,11 @@ import argparse
 import os
 import shutil
 from pathlib import Path
+import open3d as o3d
 from datasets.preprocessing.scannet_preprocessing import ScannetPreprocessing
 from utils.visualization_gui_pcd import visualize_test
+from utils.save_outputs_ply import segmentations_to_ply
+from utils.ply_double_to_float import ply_double_to_float
 import numpy as np
 
 thispath = Path(__file__).resolve()
@@ -127,6 +130,17 @@ def main():
     # visualize_test(ply_path=f"{data_dir}/scans_test/{scene}/{scene}_vh_clean_2.ply",
     #                mask_dir=f"{thispath.parent.parent}/eval_output/instance_evaluation_{exp_name}_0/decoder_-1",
     #                scene_name=scene)
+
+    # Save results
+    scene_mask = segmentations_to_ply(ply_path=f"{data_dir}/scans_test/{scene}/{scene}_vh_clean_2.ply",
+                    mask_dir=f"{thispath.parent.parent}/eval_output/instance_evaluation_{exp_name}_0/decoder_-1",
+                    scene_name=scene)
+
+    output_path = f"{thispath.parent.parent}/eval_output/instance_evaluation_{exp_name}_0/decoder_-1"
+    output_file = f"{output_path}/scene_segmented.ply"
+    o3d.io.write_point_cloud(output_file, scene_mask)
+    ply_double_to_float(output_file)
+    print(f"Pcd with segmentations saved in {output_file}")
 
 
 if __name__ == "__main__":

@@ -1,1 +1,0 @@
-sudo docker run --gpus all -it --rm -v /home/ither1/docker_volume/hl2ss/data/scene_office/scene_office_mesh.ply:/home/app/data/raw/hesso/scene_office_mesh.ply mask3d:v1.0

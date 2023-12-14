@@ -1,1 +1,6 @@
-python3 -m utils.demo --scene scene0001_00 --exp_name docker --checkpoint scannet_best
+#!/bin/sh
+
+CHECKPOINT=scannet_best
+SCENE=scene0001_00
+
+python3 -m utils.demo --scene $SCENE --exp_name docker --checkpoint $CHECKPOINT
