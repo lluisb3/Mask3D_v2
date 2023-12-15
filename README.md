@@ -192,16 +192,33 @@ Following PointGroup, HAIS and SoftGroup, we finetune a model pretrained on Scan
 | STPLS3D test | 63.4 | 79.2 | 85.6 | [config](scripts/stpls3d/stpls3d_benchmark.sh) | [checkpoint](https://omnomnom.vision.rwth-aachen.de/data/mask3d/checkpoints/stpls3d/stpls3d_benchmark.zip) | [scores](https://codalab.lisn.upsaclay.fr/competitions/4646#results) | visualizations
 
 ## Docker
-Run lluisb3/Mask3D from docker image on a pointcloud obtained using lluisb3/hl2ss and Hololens2. Follow this steps on Ubuntu to run the images correctly.
+Run Mask3D as docker image on a pointcloud or mesh file (.ply format). Follow this steps on Ubuntu to run the image correctly.
 
 #### Install docker:
 https://docs.docker.com/engine/install/ubuntu/
 
 
+#### Install NVIDIA Container Toolkit and do the configuration for Docker
+https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 
 
+#### Clone Git repository
+Clone the GitHub repository.
 ```bash
-python main_instance_segmentation.py
+git clone https://github.com/lluisb3/Mask3D_v2.git
+```
+
+#### Pull docker image 
+```bash
+sudo docker pull lluisb3/mask3d:v7.0
+```
+
+#### Run docker compose in git folder
+First modify the docker-compose file to change the path where is located the .ply file (1st volume) and where the outputs from Mask3D are saved (2nd volume).
+
+Once the path are modified run docker compose.
+```bash
+sudo docker compose up
 ```
 
 ## BibTeX :pray:
