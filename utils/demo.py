@@ -27,32 +27,6 @@ def segment(d_dir, scene):
     shutil.move(f"{d_dir}/{scene}_vh_clean_2.0.010000.segs.json",
                 f"{project_dir}/data/raw/scannet_test_segments/{scene}_vh_clean_2.0.010000.segs.json")
 
-    # plydata = plyfile.PlyData.read(f"{d_dir}/{scene}.ply")
-
-    # data = plydata.elements[0].data
-    # coords = np.array([data['x'], data['y'], data['z']], dtype=np.float32).T
-
-    # # Opening JSON file
-    # f = open('data/raw/scannet_test_segments/scene3333_00_vh_clean_2.0.010000.segs.json')
-
-    # a = open(f'data/raw/scannet_test_segments/{scene}_vh_clean_2.0.010000.segs.json', 'w')
-    
-    # # returns JSON object as 
-    # # a dictionary
-    # data = json.load(f)
-
-    # data_a = data
-    
-    # # Iterating through the json
-    # # list
-    # data_a['segIndices'] = list(range(len(coords)))
-
-    # json.dump(data_a, a, indent = 6)  
-    
-    # # Closing file
-    # f.close()
-    # a.close()
-
 
 def preprocess(d_dir):
     # Execute "scannet_preprocessing.py" for the ply file
@@ -80,6 +54,7 @@ def instance_segmentation(exp_name, checkpoint):
                     "general.dbscan_eps=0.95",
                     "data.voxel_size=0.02"])
 
+
 def main():
     # Create the parser
     parser = argparse.ArgumentParser()
@@ -97,7 +72,6 @@ def main():
 
     data_dir = str(f"{project_dir}/data/raw/hesso")
 
-
     # Update txt of the test split with the scene name
     f = open(f"{data_dir}/Tasks/Benchmark/scannetv2_test.txt", "w")
     f.write(f"{scene}\n")
@@ -113,15 +87,15 @@ def main():
     shutil.copy(f"{data_dir}/{scene}.ply", f"{data_dir}/scans_test/{scene}/{scene}_vh_clean_2.ply")
 
     # Call segment function. Runs segmentator on the file and moves the output to the segments_test folder
-    print("========= Running segmentator ==========")
+    print("===== Running segmentator =====")
     segment(data_dir, scene)
 
     # Call preprocess function. Runs "scannet_preprocessing.py" only for test split
-    print("========= Preprocessing data ==========")
+    print("===== Preprocessing data =====")
     preprocess(data_dir)
 
     # Call instance_segmentation. Runs "main_instance_segmentation.py" for test split
-    print(f"========= Running Mask3D using {checkpoint} checkpoint ==========")
+    print(f"===== Running Mask3D using {checkpoint} checkpoint =====")
     instance_segmentation(exp_name, checkpoint)
 
     # Visualize results
@@ -132,15 +106,26 @@ def main():
     #                scene_name=scene)
 
     # Save results
-    scene_mask = segmentations_to_ply(ply_path=f"{data_dir}/scans_test/{scene}/{scene}_vh_clean_2.ply",
-                    mask_dir=f"{thispath.parent.parent}/eval_output/instance_evaluation_{exp_name}_0/decoder_-1",
-                    scene_name=scene)
+    # Compute scene PointCloud and PointCloud for all the objects detected
+    scene_mask, segmented_objects = segmentations_to_ply(f"{data_dir}/scans_test/{scene}/{scene}_vh_clean_2.ply",
+                    f"{thispath.parent.parent}/eval_output/instance_evaluation_{exp_name}_0/decoder_-1", scene)
 
+    # Save scene PointCloud
     output_path = f"{thispath.parent.parent}/eval_output/instance_evaluation_{exp_name}_0/decoder_-1"
     output_file = f"{output_path}/scene_segmented.ply"
     o3d.io.write_point_cloud(output_file, scene_mask)
     ply_double_to_float(output_file)
-    print(f"Pcd with segmentations saved in {output_file}")
+    print(f"===== PointCloud with segmentations saved =====")
+
+    # Save PointCloud for every detected object
+    for object in segmented_objects:
+        segmentation = object[0]
+        label = object[1]
+        score = object[2]
+        output_file = f"{output_path}/{scene}_{label}_{score}.ply"
+        o3d.io.write_point_cloud(output_file, segmentation)
+        ply_double_to_float(output_file)
+    print(f"===== PointCloud for every segmented object saved =====")
 
 
 if __name__ == "__main__":
