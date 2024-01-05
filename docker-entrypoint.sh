@@ -1,4 +1,5 @@
 #!/bin/sh
+# Entrypoint bash script to run as default once running the container #
 
 CHECKPOINT=scannet_best
 SCENE=scene0001_00

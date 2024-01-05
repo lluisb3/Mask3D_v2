@@ -1,33 +1,59 @@
+# Dockerfile to create mask3d image as non-root user
+
 FROM nvcr.io/nvidia/cuda:11.3.0-devel-ubuntu20.04
 
-USER root
+# Set timezone to not be imteractive the python installation
+ENV TZ=Europe/Madrid
 
-RUN apt-get update
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN apt-get install -y libopenblas-dev libx11-6 libgl1-mesa-glx
+# Set non-root user as user
+ARG USER_ID
+ARG GROUP_ID
 
-ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && \
+    apt-get install -y sudo && \
+    addgroup --gid $GROUP_ID user && \
+    adduser --uid $USER_ID --gid $GROUP_ID --disabled-password --gecos "Default user" user && \
+    echo 'user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
-RUN apt-get install -y software-properties-common python3.9 python3.9-dev python3-pip git-all
+USER user
 
-RUN mkdir -p /home/app
+# Install necesary libraries
+RUN sudo apt-get install -y libopenblas-dev libx11-6 libgl1-mesa-glx
 
-RUN mkdir -p /home/app/data /home/app/eval_output 
+# Install Python and git
+RUN sudo apt-get install -y python3.9 python3.9-dev python3-pip git-all
 
-COPY . /home/app
+RUN sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
-WORKDIR /home/app
+ENV PATH=/home/user/.local/bin:$PATH
 
-RUN pip install -r requirements.txt
+# Create mask3D app and output folders
+RUN mkdir -p /home/user/app
 
-# ENV TORCH_CUDA_ARCH_LIST="7.5"
-# ENV TORCH_CUDA_ARCH_LIST=Turing
+RUN mkdir -p /home/user/app/data /home/user/app/eval_output/instance_evaluation_docker_0/decoder_-1
+
+# Change Workdirectory to mask3D app
+WORKDIR /home/user/app
+
+# Copy files into the container and set the appropriate permissions
+COPY --chown=user:user . /home/user/app
+RUN chmod -R ug+rwx /home/user/app
+
+# Install necesary requeriments and dependencies
+RUN pip3 install -r requirements.txt
+
+RUN pip3 install --upgrade pip
+
 ENV TORCH_CUDA_ARCH_LIST=export TORCH_CUDA_ARCH_LIST="6.0 6.1 6.2 7.0 7.2 7.5 8.0 8.6"
+
+RUN sudo chmod -R a+rwx /usr
 
 RUN bash dependencies.sh
 
-RUN wandb disabled
+# Disable wandb
+ENV WANDB_MODE=disabled
 
-RUN chmod u+rwx /home/app/docker-entrypoint.sh
-
-CMD [ "/home/app/docker-entrypoint.sh" ]
+# Default entrypoint
+CMD [ "/home/user/app/docker-entrypoint.sh" ]

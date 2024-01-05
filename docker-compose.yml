@@ -1,16 +1,20 @@
+# Docker compose to run the docker image lluisb3/mask3d (non-root image)#
+# Create image running docker-build-script.sh to create user with same ID as hosr user #
+# IMPORTANT to create directories in volumes on the host machine with user ownership before running #
 version: "3.8"
 
 services:
   mask3d:
-    image: lluisb3/mask3d:check_voxel_size_0.02
+    image: lluisb3/mask3d:v15.0
     volumes:
-      - /home/ither1/docker_volumes/hl2ss/hololens_docker/hololens_docker_pcd.ply:/home/app/data/raw/hesso/scene0001_00.ply
-      - /home/ither1/docker_volumes/mask3d:/home/app/eval_output
-    # user: $USER
+      - /home/lluis/docker_volumes/hl2ss/scene_meeting_4/scene_meeting_4_pcd.ply:/home/user/app/data/raw/hesso/scene0001_00.ply
+      - /home/lluis/docker_volume_10/mask3d:/home/user/app/eval_output/instance_evaluation_docker_0/decoder_-1
+    container_name: mask3d_seg
     deploy:
      resources:
        reservations:
          devices:
            - driver: nvidia
-             count: 1
+            #  count: 1
+             device_ids: ["1"]
              capabilities: [gpu]

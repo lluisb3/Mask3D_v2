@@ -11,7 +11,7 @@ pip3 install torch==1.12.1+cu113 torchvision==0.13.1+cu113 --extra-index-url htt
 pip3 install torch-scatter -f https://data.pyg.org/whl/torch-1.12.1+cu113.html
 pip3 install 'git+https://github.com/facebookresearch/detectron2.git@710e7795d0eeadf9def0e7ef957eea13532e34cf' --no-deps
 
-cd /home/app/third_party
+cd /home/user/app/third_party
 git clone --recursive "https://github.com/NVIDIA/MinkowskiEngine"
 cd MinkowskiEngine
 git checkout 02fc608bea4c0549b0a7b00ca1bf15dee4a0b228
