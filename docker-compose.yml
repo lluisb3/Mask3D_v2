@@ -7,8 +7,8 @@ services:
   mask3d:
     image: lluisb3/mask3d:v15.0
     volumes:
-      - /home/lluis/docker_volumes/hl2ss/scene_meeting_4/scene_meeting_4_pcd.ply:/home/user/app/data/raw/hesso/scene0001_00.ply
-      - /home/lluis/docker_volume_10/mask3d:/home/user/app/eval_output/instance_evaluation_docker_0/decoder_-1
+      - /home/lluis/docker_volume/hl2ss/hololens_docker_pcd.ply:/home/user/app/data/raw/hesso/scene0001_00.ply
+      - /home/lluis/docker_volume/mask3d/hololens:/home/user/app/eval_output/instance_evaluation_docker_0/decoder_-1
     container_name: mask3d_seg
     deploy:
      resources:
