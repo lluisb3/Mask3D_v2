@@ -192,14 +192,17 @@ Following PointGroup, HAIS and SoftGroup, we finetune a model pretrained on Scan
 | STPLS3D test | 63.4 | 79.2 | 85.6 | [config](scripts/stpls3d/stpls3d_benchmark.sh) | [checkpoint](https://omnomnom.vision.rwth-aachen.de/data/mask3d/checkpoints/stpls3d/stpls3d_benchmark.zip) | [scores](https://codalab.lisn.upsaclay.fr/competitions/4646#results) | visualizations
 
 ## Docker
-Run Mask3D as docker image on a pointcloud or mesh file (.ply format). Follow this steps on Ubuntu to run the image correctly.
+Run Mask3D as docker image on a pointcloud or mesh file (.ply format).
 
-#### Install docker:
-https://docs.docker.com/engine/install/ubuntu/
+### Ubuntu
+Follow this steps on Ubuntu to run the image correctly.
+
+#### Install Docker:
+[Install Docker](https://docs.docker.com/engine/install/ubuntu/) and perform the [post-installation](https://docs.docker.com/engine/install/linux-postinstall/) steps to manage Docker as non-root user.
 
 
-#### Install NVIDIA Container Toolkit and do the configuration for Docker
-https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+#### Install NVIDIA Container Toolkit
+[Install NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) and do the configuration for Docker.
 
 
 #### Clone Git repository
@@ -208,17 +211,45 @@ Clone the GitHub repository.
 git clone https://github.com/lluisb3/Mask3D_v2.git
 ```
 
-#### Pull docker image 
+#### Build or Pull docker image
+(recommended) Build docker image using Dockerfile in the git repository. It is recommended in order to map the IDs of the non-root user in the container and the user in the host machine.
 ```bash
-sudo docker pull lluisb3/mask3d:v7.0
+bash docker-build-script.sh
+```
+Pull docker image in this case set to tag v9.0. Check for other tags on Docker Hub. (User ID in the image 1000:1000)
+```bash
+docker pull lluisb3/mask3d:v15.0
+``` 
+
+#### Run docker compose
+Run docker compose. First, set the environment variables in the .env file. Change the OUTPUT_PATH and INPUT_PATH variable to the desired directory in your machine. In the volumes section folders in host machine MUST exist before running (if not they are created as root user and you will experience permission errors to save the output files).
+```bash
+docker compose up
 ```
 
-#### Run docker compose in git folder
-First modify the docker-compose file to change the path where is located the .ply file (1st volume) and where the outputs from Mask3D are saved (2nd volume).
+### Windows 
+Follow this steps on Windows to run the image correctly (tested on Windows 11).
 
-Once the path are modified run docker compose.
+#### Install Docker Desktop:
+[Install Docker Desktop](https://docs.docker.com/desktop/install/windows-install/) for Windows.
+
+
+#### Clone Git repository
+Clone the GitHub repository.
 ```bash
-sudo docker compose up
+git clone https://github.com/lluisb3/Mask3D_v2.git
+```
+
+#### Pull docker image
+Pull docker image using the Docker Desktop app or command line.
+```
+lluisb3/mask3d:v15.0
+```
+
+#### Run docker compose
+Run docker compose. First, set the environment variables in the .env file. Change the OUTPUT_PATH and INPUT_PATH variable to the desired directory in your machine.
+```bash
+docker compose up
 ```
 
 ## BibTeX :pray:

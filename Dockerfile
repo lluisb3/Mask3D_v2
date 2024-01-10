@@ -2,6 +2,9 @@
 
 FROM nvcr.io/nvidia/cuda:11.3.0-devel-ubuntu20.04
 
+# To not cache the packages
+RUN echo "[install]\ncompile = no\n\n[global]\nno-cache-dir = True" > /etc/pip.conf
+
 # Set timezone to not be imteractive the python installation
 ENV TZ=Europe/Madrid
 
@@ -20,7 +23,7 @@ RUN apt-get update && \
 USER user
 
 # Install necesary libraries
-RUN sudo apt-get install -y libopenblas-dev libx11-6 libgl1-mesa-glx
+RUN sudo apt-get install --no-install-recommends -y libopenblas-dev libx11-6 libgl1-mesa-glx
 
 # Install Python and git
 RUN sudo apt-get install -y python3.9 python3.9-dev python3-pip git-all
@@ -56,4 +59,4 @@ RUN bash dependencies.sh
 ENV WANDB_MODE=disabled
 
 # Default entrypoint
-CMD [ "/home/user/app/docker-entrypoint.sh" ]
+CMD [ "python3", "-u", "-m", "utils.demo", "--scene", "scene0001_00", "--exp_name", "docker", "--checkpoint", "scannet_best" ]
