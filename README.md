@@ -247,7 +247,7 @@ lluisb3/mask3d:v15.0
 ```
 
 #### Run docker compose
-Run docker compose. First, set the environment variables in the .env file. Change the OUTPUT_PATH and INPUT_PATH variable to the desired directory in your machine.
+Run docker compose. First, set the environment variables in the .env file. Change the OUTPUT_PATH and INPUT_PATH variable to the desired directory in your machine. In the volumes section folders in host machine MUST exist before running (if not they are created as root user and you will experience permission errors to save the output files).
 ```bash
 docker compose up
 ```
