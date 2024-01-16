@@ -216,7 +216,7 @@ git clone https://github.com/lluisb3/Mask3D_v2.git
 ```bash
 bash docker-build-script.sh
 ```
-Pull docker image in this case set to tag v9.0. Check for other tags on Docker Hub. (User ID in the image 1000:1000)
+Pull docker image in this case set to tag v15.0. Check for other tags on Docker Hub. (User ID in the image 1000:1000)
 ```bash
 docker pull lluisb3/mask3d:v15.0
 ``` 
