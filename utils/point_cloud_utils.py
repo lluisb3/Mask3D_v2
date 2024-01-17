@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import List, Optional, Tuple
-
+import pandas as pd
 import numpy as np
 import open3d
 from plyfile import PlyData, PlyElement
@@ -20,6 +20,27 @@ def load_ply(filepath):
     if "label" in data.dtype.names:
         labels = np.array(data["label"], dtype=np.uint32)
     return coords, feats, labels
+
+
+def load_ply_pandas(filepath):
+    header_1 = ["X", "Y", "Z"]
+    with open(filepath, "rb") as f:
+        plydata = PlyData.read(f)
+    data = plydata.elements[0].data
+    coords = np.array([data["x"], data["y"], data["z"]], dtype=np.float32).T
+    feats = None
+    labels = None
+    if ({"red", "green", "blue"} - set(data.dtype.names)) == set():
+        header_2 = ["X", "Y", "Z", "R", "G", "B"]
+        feats = np.array(
+            [data["red"], data["green"], data["blue"]], dtype=np.uint8
+        ).T
+    if feats is not None:
+        print(np.concatenate([coords, feats], axis=1).shape)
+        df_ply = pd.DataFrame(np.concatenate([coords, feats], axis=1), columns=header_2)
+    else:
+        df_ply = pd.DataFrame(coords, columns=header_1)
+    return df_ply
 
 
 def load_ply_with_normals(filepath):
