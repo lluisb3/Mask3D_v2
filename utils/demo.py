@@ -6,7 +6,7 @@ from pathlib import Path
 import open3d as o3d
 from datasets.preprocessing.scannet_preprocessing import ScannetPreprocessing
 from utils.visualization_gui_pcd import visualize_test
-from utils.save_outputs_ply import segmentations_to_ply
+from utils.segmentations_to_ply import segmentations_to_ply
 from utils.ply_double_to_float import ply_double_to_float
 import numpy as np
 
@@ -112,20 +112,36 @@ def main():
 
     # Save scene PointCloud
     output_path = f"{thispath.parent.parent}/eval_output/instance_evaluation_{exp_name}_0/decoder_-1"
-    output_file = f"{output_path}/scene_segmented.ply"
-    o3d.io.write_point_cloud(output_file, scene_mask)
-    ply_double_to_float(output_file)
-    print(f"===== PointCloud with segmentations saved =====")
+    if scene_mask.get_geometry_type() == o3d.geometry.PointCloud.Type.PointCloud:
+        output_file = f"{output_path}/scene_segmented_pcd.ply"
+        o3d.io.write_point_cloud(output_file, scene_mask)
+        ply_double_to_float(output_file)
+        print(f"===== PointCloud with segmentations saved =====")
+    elif scene_mask.get_geometry_type() == o3d.geometry.TriangleMesh.Type.TriangleMesh:
+        output_file = f"{output_path}/scene_segmented_mesh.ply"
+        o3d.io.write_triangle_mesh(output_file, scene_mask)
+        ply_double_to_float(output_file)
+        print(f"===== Mesh with segmentations saved =====")
 
     # Save PointCloud for every detected object
-    for object in segmented_objects:
-        segmentation = object[0]
-        label = object[1]
-        score = object[2]
-        output_file = f"{output_path}/{scene}_{label}_{score}.ply"
-        o3d.io.write_point_cloud(output_file, segmentation)
-        ply_double_to_float(output_file)
-    print(f"===== PointCloud for every segmented object saved =====")
+    if scene_mask.get_geometry_type() == o3d.geometry.PointCloud.Type.PointCloud:
+        for object in segmented_objects:
+            segmentation = object[0]
+            label = object[1]
+            score = object[2]
+            output_file = f"{output_path}/{scene}_{label}_{score}.ply"
+            o3d.io.write_point_cloud(output_file, segmentation)
+            ply_double_to_float(output_file)
+        print(f"===== PointCloud for every segmented object saved =====")
+    elif scene_mask.get_geometry_type() == o3d.geometry.TriangleMesh.Type.TriangleMesh:
+        for object in segmented_objects:
+            segmentation = object[0]
+            label = object[1]
+            score = object[2]
+            output_file = f"{output_path}/{scene}_{label}_{score}.ply"
+            o3d.io.write_triangle_mesh(output_file, segmentation)
+            ply_double_to_float(output_file)
+        print(f"===== Mesh for every segmented object saved =====")
 
 
 if __name__ == "__main__":

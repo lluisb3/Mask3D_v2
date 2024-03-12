@@ -1,8 +1,9 @@
-/saved
-/logs
-/data
-/eval_output
-/checkpoints
+saved
+logs
+data/processed
+data/raw/scannet_test_segments/*
+eval_output
+checkpoints
 third_party/MinkowskiEngine
 third_party/ScanNet
 *.out

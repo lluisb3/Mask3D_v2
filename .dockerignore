@@ -1,6 +1,4 @@
 data/processed
-data/raw/s3dis
-data/raw/scannet_dataset
 data/raw/scannet_test_segments/*
 eval_output
 saved
