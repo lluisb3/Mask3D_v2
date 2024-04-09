@@ -56,6 +56,9 @@ def instance_segmentation(exp_name, checkpoint):
 
 
 def main():
+    # Avoid unnecessary warnings Open3D
+    o3d.utility.set_verbosity_level(o3d.utility.VerbosityLevel.Error)
+    
     # Create the parser
     parser = argparse.ArgumentParser()
     # Add arguments
@@ -106,12 +109,16 @@ def main():
     #                scene_name=scene)
 
     # Save results
+    output_path = f"{thispath.parent.parent}/eval_output/instance_evaluation_{exp_name}_0/decoder_-1"
+
     # Compute scene PointCloud and PointCloud for all the objects detected
-    scene_mask, segmented_objects = segmentations_to_ply(f"{data_dir}/scans_test/{scene}/{scene}_vh_clean_2.ply",
+    scene_mask, segmented_objects, information = segmentations_to_ply(f"{data_dir}/scans_test/{scene}/{scene}_vh_clean_2.ply",
                     f"{thispath.parent.parent}/eval_output/instance_evaluation_{exp_name}_0/decoder_-1", scene)
 
+    # Save center of the objects and axis
+    information.to_csv(f"{output_path}/information.csv")
+    
     # Save scene PointCloud
-    output_path = f"{thispath.parent.parent}/eval_output/instance_evaluation_{exp_name}_0/decoder_-1"
     if scene_mask.get_geometry_type() == o3d.geometry.PointCloud.Type.PointCloud:
         output_file = f"{output_path}/scene_segmented_pcd.ply"
         o3d.io.write_point_cloud(output_file, scene_mask)
@@ -126,22 +133,53 @@ def main():
     # Save PointCloud for every detected object
     if scene_mask.get_geometry_type() == o3d.geometry.PointCloud.Type.PointCloud:
         for object in segmented_objects:
-            segmentation = object[0]
+            pcd_segmentation = object[0]
             label = object[1]
             score = object[2]
-            output_file = f"{output_path}/{scene}_{label}_{score}.ply"
-            o3d.io.write_point_cloud(output_file, segmentation)
+
+            output_file = f"{output_path}/{label}_{score}.ply"
+            o3d.io.write_point_cloud(output_file, pcd_segmentation)
             ply_double_to_float(output_file)
-        print(f"===== PointCloud for every segmented object saved =====")
+
+            pcd_segmentation.estimate_normals()
+
+            # estimate radius for rolling ball
+            distances = pcd_segmentation.compute_nearest_neighbor_distance()
+            avg_dist = np.mean(distances)
+            if avg_dist != 0:
+                radius = abs(1.5 * avg_dist)
+            else:
+                radius = 0.03
+            mesh_object = o3d.geometry.TriangleMesh.create_from_point_cloud_ball_pivoting(pcd_segmentation,
+                                                                o3d.utility.DoubleVector([radius, radius * 2]))
+            mesh_output_file = f"{output_path}/{label}_{score}.obj"
+            o3d.io.write_triangle_mesh(mesh_output_file, mesh_object)
+        print(f"===== PointCloud and Mesh for every segmented object saved =====")
+
     elif scene_mask.get_geometry_type() == o3d.geometry.TriangleMesh.Type.TriangleMesh:
         for object in segmented_objects:
-            segmentation = object[0]
+            pcd_segmentation = object[0]
             label = object[1]
             score = object[2]
-            output_file = f"{output_path}/{scene}_{label}_{score}.ply"
-            o3d.io.write_triangle_mesh(output_file, segmentation)
+
+            output_file = f"{output_path}/{label}_{score}.ply"
+            o3d.io.write_point_cloud(output_file, pcd_segmentation)
             ply_double_to_float(output_file)
-        print(f"===== Mesh for every segmented object saved =====")
+
+            pcd_segmentation.estimate_normals()
+
+            # estimate radius for rolling ball
+            distances = pcd_segmentation.compute_nearest_neighbor_distance()
+            avg_dist = np.mean(distances)
+            if avg_dist != 0:
+                radius = abs(1.5 * avg_dist)
+            else:
+                radius = 0.03
+            mesh_object = o3d.geometry.TriangleMesh.create_from_point_cloud_ball_pivoting(pcd_segmentation,
+                                                                o3d.utility.DoubleVector([radius, radius * 2]))
+            mesh_output_file = f"{output_path}/{label}_{score}.obj"
+            o3d.io.write_triangle_mesh(mesh_output_file, mesh_object)
+        print(f"===== PointCloud and Mesh for every segmented object saved  =====")
 
 
 if __name__ == "__main__":

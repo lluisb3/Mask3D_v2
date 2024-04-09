@@ -7,6 +7,7 @@ from datasets.scannet200.scannet200_constants import VALID_CLASS_IDS_200, CLASS_
 from utils.ply_double_to_float import ply_double_to_float
 from pathlib import Path
 from plyfile import PlyData
+import pandas as pd
 import numpy as np
 
 
@@ -22,8 +23,19 @@ def segmentations_to_ply(ply_path, mask_dir, scene_name):
         scene_mask = o3d.io.read_point_cloud(ply_path)
     else:
         scene_mask = o3d.io.read_triangle_mesh(ply_path)
+    
+    # Rotation matrices to coordinate system in Unity
+    rotation_unity = np.array(([1.0, 0.0, 0.0],
+                    [0.0, 0.0, -1.0],
+                    [0.0, -1.0, 0.0]))
+    
+    rotation_unity_2 = np.array(([-1.0, -0.0, 0.0],
+                    [0.0, -1.0, 0.0],
+                    [0.0, 0.0, 1.0]))
 
     all_objects = []
+    information = []
+    header = ["object", "score", "center", "axis_aligned_bounding_box", "axis_points", "axis_center", "oriented_bounding_box", "oriented_points", "oriented_center"]
     # Read txt for the scene
     with open(f"{mask_dir}/{scene_name}.txt") as f:
         lines = f.readlines()
@@ -55,8 +67,8 @@ def segmentations_to_ply(ply_path, mask_dir, scene_name):
         inst_color = list(SCANNET_COLOR_MAP_20[VALID_CLASS_IDS_20[CLASS_LABELS_20.index(label)]])
         points_object = []
         colors_object = []
-        triangles_mesh = []
 
+        # Check if input is a PointCloud (number_of_elements_ply <= 1) else a Mesh 
         if number_of_elements_ply <= 1:
             for i in range(len(scene_mask.points)):
                 if mask[i]:
@@ -70,10 +82,42 @@ def segmentations_to_ply(ply_path, mask_dir, scene_name):
                 else:
                     colors.append(scene_mask.colors[i])
 
-            object = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points_object))
-            object.colors = o3d.utility.Vector3dVector(colors_object)
-            all_objects.append((object, label, score))
+            object_pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points_object))
+            object_pcd.colors = o3d.utility.Vector3dVector(colors_object)
+
+            # Rotate objects to unity coordinate system
+            object_pcd.rotate(rotation_unity, center=(0, 0, 0))
+            object_pcd.rotate(rotation_unity_2, center=(0, 0, 0))
+
+            # Remove outlier points in the PointCloud
+            print("Statistical outlier removal")
+            _, ind = object_pcd.remove_statistical_outlier(nb_neighbors=25,
+                                                    std_ratio=0.8)
+            object_pcd_inliers = object_pcd.select_by_index(ind)
+
+            # If object has enough points
+            if len(object_pcd_inliers.points) > 3:
+                center_object = object_pcd_inliers.get_center()
+                axis_aligned_bounding_box = object_pcd_inliers.get_axis_aligned_bounding_box()
+                axis_aligned_points = np.asarray(axis_aligned_bounding_box.get_box_points())
+                axis_aligned_center = axis_aligned_bounding_box.get_center()
+                oriented_bounding_box = object_pcd_inliers.get_oriented_bounding_box()
+                oriented_points = np.asarray(oriented_bounding_box.get_box_points())
+                oriented_center = oriented_bounding_box.get_center()
+            else:
+                center_object = None
+                axis_aligned_bounding_box = None
+                axis_aligned_points = None
+                axis_aligned_center = None
+                oriented_bounding_box = None
+                oriented_points = None
+                oriented_center = None
+            
+            all_objects.append((object_pcd_inliers, label, score))
+            information.append((label, score, center_object, axis_aligned_bounding_box, axis_aligned_points, axis_aligned_center, oriented_bounding_box, oriented_points, oriented_center))
+            pcd_dataframe_information = pd.DataFrame(information, columns=header)
             scene_mask.colors = o3d.utility.Vector3dVector(colors)
+        # Mesh
         else:
             for i in range(len(scene_mask.vertices)):
                 if mask[i]:
@@ -88,27 +132,44 @@ def segmentations_to_ply(ply_path, mask_dir, scene_name):
                     colors.append(scene_mask.vertex_colors[i])
 
             object_pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points_object))
-            object_pcd.estimate_normals()
-            a = object_pcd.get_axis_aligned_bounding_box()
-            b = object_pcd.get_center()
-            print(a)
-            print(b)
-            
-            # estimate radius for rolling ball
-            distances = object_pcd.compute_nearest_neighbor_distance()
-            avg_distance = np.mean(distances)
-            if avg_distance != 0:
-                radius = 1.5*avg_distance
-            else:
-                radius = 0.03
-            
+            object_pcd.colors = o3d.utility.Vector3dVector(colors_object)
 
-            object_mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_ball_pivoting(object_pcd,
-                    o3d.utility.DoubleVector([radius, radius]))
-            all_objects.append((object_mesh, label, score))
+            # Rotate objects to unity coordinate system
+            object_pcd.rotate(rotation_unity, center=(0, 0, 0))
+            object_pcd.rotate(rotation_unity_2, center=(0, 0, 0))
+
+            # Remove outlier points in the PointCloud
+            print("Statistical outlier removal")
+            _, ind = object_pcd.remove_statistical_outlier(nb_neighbors=25,
+                                                    std_ratio=0.8)
+            object_pcd_inliers = object_pcd.select_by_index(ind)
+
+            center_object = object_pcd_inliers.get_center()
+            if len(object_pcd_inliers.points) > 3:
+                center_object = object_pcd_inliers.get_center()
+                axis_aligned_bounding_box = object_pcd_inliers.get_axis_aligned_bounding_box()
+                axis_aligned_points = np.asarray(axis_aligned_bounding_box.get_box_points())
+                axis_aligned_center = axis_aligned_bounding_box.get_center()
+                oriented_bounding_box = object_pcd_inliers.get_oriented_bounding_box()
+                oriented_points = np.asarray(oriented_bounding_box.get_box_points())
+                oriented_center = oriented_bounding_box.get_center()
+            else:
+                center_object = None
+                axis_aligned_bounding_box = None
+                axis_aligned_points = None
+                axis_aligned_center = None
+                oriented_bounding_box = None
+                oriented_points = None
+                oriented_center = None
+
+            
+            all_objects.append((object_pcd_inliers, label, score))
+            information.append((label, score, center_object, axis_aligned_bounding_box, axis_aligned_points, axis_aligned_center, oriented_bounding_box, oriented_points, oriented_center))
+
+            pcd_dataframe_information = pd.DataFrame(information, columns=header)
             scene_mask.vertex_colors = o3d.utility.Vector3dVector(colors)
 
-    return scene_mask, all_objects
+    return scene_mask, all_objects, pcd_dataframe_information
 
 def main():
     # Create the parser
@@ -143,7 +204,7 @@ def main():
         segmentation = object[0]
         label = object[1]
         score = object[2]
-        output_file = f"{output_path}/{scene_name}_{label}_{score}.ply"
+        output_file = f"{output_path}/{label}_{score}.ply"
         o3d.io.write_point_cloud(output_file, segmentation)
         ply_double_to_float(output_file)
 

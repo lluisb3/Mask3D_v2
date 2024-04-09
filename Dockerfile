@@ -2,7 +2,7 @@
 
 FROM nvcr.io/nvidia/cuda:11.3.0-devel-ubuntu20.04
 
-# To not cache the packages
+# Not cache pip packages
 RUN echo "[install]\ncompile = no\n\n[global]\nno-cache-dir = True" > /etc/pip.conf
 
 # Set timezone to not be imteractive the python installation
